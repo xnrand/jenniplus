@@ -1,0 +1,3 @@
+[submodule "jenni"]
+	path = jenni
+	url = git://github.com/myano/jenni.git
