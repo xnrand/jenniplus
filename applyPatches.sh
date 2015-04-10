@@ -8,10 +8,10 @@ log() {
 
 logcd() {
   local dir="$1"
-  local applypatcheslogsuffix
   shift
   cd "$dir"
-  applypatcheslogsuffix=":$dir" log "$@"
+  printf '\n[$:%s] %s\n' "$dir" "$*"
+  "$@"
   cd "$PDIR"
 }
 
