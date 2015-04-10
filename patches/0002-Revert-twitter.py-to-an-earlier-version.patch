@@ -1,0 +1,63 @@
+From 365bc66f047c9628040ea8cf1879133a5ead02fb Mon Sep 17 00:00:00 2001
+From: xnrand <xnrand@gmail.com>
+Date: Fri, 10 Apr 2015 21:00:07 +0200
+Subject: [PATCH] Revert twitter.py to an earlier version
+
+---
+ modules/twitter.py | 33 +++++++++++----------------------
+ 1 file changed, 11 insertions(+), 22 deletions(-)
+
+diff --git a/modules/twitter.py b/modules/twitter.py
+index de1e858..8663392 100644
+--- a/modules/twitter.py
++++ b/modules/twitter.py
+@@ -13,7 +13,6 @@ More info:
+ from htmlentitydefs import name2codepoint
+ import re
+ import time
+-import urllib
+ import web
+ 
+ from modules import unicode as uc
+@@ -84,27 +83,17 @@ def user_tweet(username):
+ 
+ def id_tweet(tid):
+     link = 'https://twitter.com/-/status/' + tid
+-    error = "Sorry, couldn't get a tweet from %s" % link
+-
+-    data = web.head_info(link)
+-    code = data.get('code', 0)
+-    code = int(code)
+-
+-    url = str()
+-
+-    if code == 301:
+-        url = data.get('info', dict()).get('Location')
+-    elif code == 200:
+-        url = data.get('geturl')
+-    else:
+-        return error
+-
+-    if not url:
+-        return error
+-
+-    username = url.split('/')[3]
+-    tweet = read_tweet(url)
+-    return format(tweet, username)
++    data = web.head(link)
++    message, status = tuple(data)
++
++    if status == 301:
++        url = message.get("Location")
++        if not url:
++            return "Sorry, couldn't get a tweet from %s" % link
++        username = url.split('/')[3]
++        tweet = read_tweet(url)
++        return format(tweet, username)
++    return "Sorry, couldn't get a tweet from %s" % link
+ 
+ def twitter(jenni, input):
+     arg = input.group(2)
+-- 
+1.8.4.5
+
