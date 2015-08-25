@@ -1,6 +1,6 @@
-From 6a016ffba884e5ebd327020ebf944dbf4ebad72c Mon Sep 17 00:00:00 2001
+From fcfff2a3dcbc7e7a460277aae69b9bd7a2224917 Mon Sep 17 00:00:00 2001
 From: xnrand <xnrand@gmail.com>
-Date: Sat, 4 Apr 2015 23:53:18 +0200
+Date: Wed, 26 Aug 2015 00:34:27 +0200
 Subject: [PATCH] Allow separating nicks for .tell with "/"
 
 Instead of the command
@@ -16,11 +16,11 @@ you can now use
 as "*" still works, you could also use:
     .tell yano*/msy,xnr* bar
 ---
- modules/tell.py | 110 ++++++++++++++++++++++++++++++--------------------------
- 1 file changed, 60 insertions(+), 50 deletions(-)
+ modules/tell.py | 108 +++++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 59 insertions(+), 49 deletions(-)
 
 diff --git a/modules/tell.py b/modules/tell.py
-index e344fd3..850c977 100644
+index 038cefb..81829bd 100644
 --- a/modules/tell.py
 +++ b/modules/tell.py
 @@ -17,17 +17,16 @@ maximum = 4
@@ -79,7 +79,7 @@ index e344fd3..850c977 100644
  
  
  def f_remind(jenni, input):
-@@ -87,40 +84,48 @@ def f_remind(jenni, input):
+@@ -87,38 +84,46 @@ def f_remind(jenni, input):
      tellee = tellee.encode('utf-8')
      msg = msg.encode('utf-8')
  
@@ -112,6 +112,11 @@ index e344fd3..850c977 100644
 -        response = 'You can %s yourself that.' % (verb)
 -    elif tellee.lower() == jenni.nick.lower():
 -        response = "Hey, I'm not as stupid as Monty you know!"
+-    else:
+-        response = "I'll pass that on when %s is around."
+-        if len(whogets) > 1:
+-            listing = ', '.join(whogets[:-1]) + ', or ' + whogets[-1]
+-            response = response % (listing)
 +
 +    for nickmask in tellee.split(','):
 +        for anick in nickmask.split('/'):
@@ -144,18 +149,10 @@ index e344fd3..850c977 100644
 +    if len(whogets) > 1:
 +        listing = ', '.join(whogets[:-1]) + ', or ' + whogets[-1]
 +        response = response % (listing)
-     else:
--        response = "I'll pass that on when %s is around."
--        if len(whogets) > 1:
--            listing = ', '.join(whogets[:-1]) + ', or ' + whogets[-1]
--            response = response % (listing)
--        else:
--            response = response % (whogets[0])
-+        response = response % (whogets[0])
- 
-     if not whogets: # Only get cute if there are not legits
-         rand = random.random()
-@@ -140,7 +145,6 @@ def getReminders(jenni, channel, key, tellee):
+         elif len(whogets) == 1:
+             response = response % (whogets[0])
+         else:
+@@ -142,7 +147,6 @@ def getReminders(jenni, channel, key, tellee):
      today = time.strftime('%d %b', time.gmtime())
  
      jenni.tell_lock.acquire()
@@ -163,7 +160,7 @@ index e344fd3..850c977 100644
      try:
          for (teller, verb, datetime, msg) in jenni.reminders[key]:
              if datetime.startswith(today):
-@@ -168,11 +172,17 @@ def message(jenni, input):
+@@ -170,11 +174,17 @@ def message(jenni, input):
      reminders = []
      remkeys = list(reversed(sorted(jenni.reminders.keys())))
      for remkey in remkeys:
