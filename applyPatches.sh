@@ -25,14 +25,15 @@ printf '[=] stored in %s\n' "$PDIR"
 cd $PDIR
 
 log git submodule update --init
+logcd jenni git update-ref refs/heads/plus $(cd jenni ; git show-ref -s HEAD)
 
 if ! [ -d jenniplus ] ; then
   log git clone jenni jenniplus
 elif ! [ -d jenniplus/.git ] ; then
   printf '[?] "jenniplus" exists but is not a git repository'
 else
-  logcd jenniplus git checkout origin/master
-  logcd jenniplus git pull origin master
+  logcd jenniplus git pull origin plus:plus
+  logcd jenniplus git checkout origin/plus
 fi
 
 log cd jenniplus
