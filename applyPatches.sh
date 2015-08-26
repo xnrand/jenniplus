@@ -1,45 +1,67 @@
 #!/bin/sh
-# SHOULD be posix-compatible.
 
-log() {
-  printf '\n[$%s] %s\n' "$applypatcheslogsuffix" "$*"
+_ensure() {
+  local currline="$1"
+  shift
+  if $@ ; then :
+  else
+    local exitcode="$?"
+    if [[ "$1" == "_log" ]] || [[ "$1" == "_logcd" ]] ; then
+      shift 2
+    fi
+    printf '[?] line %s: Error: "%s" returned exit code %s\n' "$currline" "$*" "$exitcode" 1>&2
+    exit 1
+  fi
+}
+unalias -a
+alias ensure='_ensure "$LINENO"'
+alias ensurec='_ensure "$currline"'
+alias log='ensure _log "$LINENO"'
+alias logcd='ensure _logcd "$LINENO"'
+shopt -s expand_aliases
+
+_log() {
+  shift
+  printf '\n[$] %s\n' "$*"
   "$@"
 }
 
-logcd() {
+_logcd() {
+  local currline="$1"
+  shift
   local dir="$1"
   shift
-  cd "$dir"
+  ensurec cd "$dir"
   printf '\n[$:%s] %s\n' "$dir" "$*"
   "$@"
-  cd "$PDIR"
+  local returncode="$?"
+  ensurec cd "$PDIR"
+  return "$returncode"
 }
-
-unset applypatcheslogsuffix
-set -o errexit
 
 PDIR="$(dirname "$(readlink -fn "$0")")"
 
 printf '[=] stored in %s\n' "$PDIR"
 
-cd $PDIR
+ensure cd $PDIR
 
 log git submodule update --init
-logcd jenni git update-ref refs/heads/plus $(cd jenni ; git show-ref -s HEAD)
+logcd jenni git checkout -B plus
 
-if ! [ -d jenniplus ] ; then
+if ! [[ -d jenniplus ]] ; then
   log git clone jenni jenniplus
-elif ! [ -d jenniplus/.git ] ; then
-  printf '[?] "jenniplus" exists but is not a git repository'
+  logcd jenniplus git checkout -q origin/plus
+elif ! [[ -d jenniplus/.git ]] ; then
+  printf '\n[?] line %s: "jenniplus" exists but is not a git repository\n' "$LINENO"
+  exit 1
 else
-  logcd jenniplus git pull origin plus:plus
-  logcd jenniplus git checkout origin/plus
+  logcd jenniplus git checkout -B origin/plus-old
+  logcd jenniplus git fetch -f origin plus:plus
+  logcd jenniplus git checkout plus
 fi
 
-log cd jenniplus
-
-for patch in ../patches/* ; do
-  log git am "$patch"
+for patch in patches/* ; do
+  logcd jenniplus git am ../"$patch"
 done
 
-printf '[=] applied patches successfully\n'
+printf '\n[=] applied patches successfully\n'
