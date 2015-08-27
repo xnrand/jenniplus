@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 _ensure() {
   local currline="$1"
