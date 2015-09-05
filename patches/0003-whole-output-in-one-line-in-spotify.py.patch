@@ -1,0 +1,29 @@
+From 9f567099a0bc258187b66bdb0082bb352df02806 Mon Sep 17 00:00:00 2001
+From: xnrand <xnrand@gmail.com>
+Date: Sat, 5 Sep 2015 21:18:22 +0200
+Subject: [PATCH] whole output in one line in spotify.py
+
+---
+ modules/spotify.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/modules/spotify.py b/modules/spotify.py
+index d288469..fac148a 100644
+--- a/modules/spotify.py
++++ b/modules/spotify.py
+@@ -121,9 +121,9 @@ def print_track(jenni, track):
+     length = str(timedelta(seconds=track['length']))[2:7]
+     if length[0] == '0':
+         length = length[1:]
+-    jenni.say("%s by %s" % (track['name'], track['artists'][0]['name']))
+-    jenni.say("   Length: %s" % length)
+-    jenni.say("   Album: \"%s\" " % track['album']['name'])
++    jenni.say("\"\x02%s\x02\" by \x02%s\x02," % (track['name'], track['artists'][0]['name']) +
++              "  Length: \x02%s\x02," % length +
++              "  Album: \"\x02%s\x02\" " % track['album']['name'])
+ 
+ 
+ def query(jenni, input):
+-- 
+1.8.4.5
+
